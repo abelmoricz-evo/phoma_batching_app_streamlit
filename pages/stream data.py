@@ -1,8 +1,38 @@
+import os
+import hmac
 import numpy as np
 import pandas as pd
 from datetime import datetime
 import streamlit as st
 from sqlalchemy import create_engine
+
+from dotenv import load_dotenv
+from streamlit.logger import get_logger
+
+session_state = st.session_state
+
+load_dotenv()
+
+
+def check_password():
+    def password_entered():
+        if hmac.compare_digest(st.session_state["password"], os.environ.get("STREAMLIT_PASSWORD", "")):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
+
+    if st.session_state.get("password_correct", False):
+        return True
+    st.text_input("Password", type="password", on_change=password_entered, key="password")
+    if "password_correct" in st.session_state:
+        st.error("😕 Password incorrect")
+    return False
+
+
+if not int(float(os.environ['DEBUG'])):
+    if not check_password():
+        st.stop()
 
 def stream_data():
     engine = create_engine(f"postgresql://postgres:DsRdPPJtetGDiMFypvHpUJUKAwEXfoSG@junction.proxy.rlwy.net:19704/PHOMA")
