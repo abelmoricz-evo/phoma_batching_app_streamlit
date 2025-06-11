@@ -1,0 +1,24 @@
+    '''df = pd.read_sql(f""" SELECT
+            "timestamp","duration", "InoculationTime",
+            "CTR_PV [mMol/h]",
+            "DO_Out [%%]", "DO_PV [%%DO]", "DO_SP [%%DO]",
+            "F_Out [sL/h]", "F_PV [sL/h]", "F_SP [sL/h]", "FA_PV [mL/h]", "FA_SP [mL/h]", "FAir_PV [sL/h]", "FAir_SP [sL/h]",
+            "FB_PV [mL/h]", "FB_SP [mL/h]", "FCO2_PV [sL/h]", "FCO2_SP [sL/h]", "FN2_PV [sL/h]", "FN2_SP [sL/h]", "FO2_PV [sL/h]",
+            "FO2_SP [sL/h]", "N_PV [rpm]", "N_SP [rpm]", "OTR_PV [mMol/h]",
+            "pH_Out [%%]", "pH_PV [pH]", "pH_SP [pH]",
+            "RQ_PV []",
+            "T_Out [%%]", "T_PV [°C]", "T_SP [°C]",
+            "VA_PV [mL]", "VB_PV [mL]",
+            "XCO2_Out [%%]", "XCO2_PV [%%]", "XCO2_SP [%%]", "XO2_Out [%%]", "XO2_PV [%%]", "XO2_SP [%%]",
+            "vessel"
+    FROM "STREAM_dasgip" """, con=engine)
+    '''
+
+
+
+'''st.markdown(f"""
+    <p>rows of data:<br/> {len(df.index)} </p>
+    <p>min() timestamp:<br/> {df['timestamp'].min()} </p>
+    <p>max() timestamp:<br/> {df['timestamp'].max()} </p>
+    <p>unique() vessels (aka. batches):<br/> {df['vessel'].unique()} </p>
+""", unsafe_allow_html=True)'''
