@@ -3,32 +3,16 @@ import hmac
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
+from utils import check_password
+from sqlalchemy import create_engine
 
 session_state = st.session_state
 
 load_dotenv()
 
-
-def check_password():
-    def password_entered():
-        if hmac.compare_digest(st.session_state["password"], os.environ.get("STREAMLIT_PASSWORD", "")):
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]
-        else:
-            st.session_state["password_correct"] = False
-
-    if st.session_state.get("password_correct", False):
-        return True
-    st.text_input("Password", type="password", on_change=password_entered, key="password")
-    if "password_correct" in st.session_state:
-        st.error("😕 Password incorrect")
-    return False
-
-
 if not int(float(os.environ['DEBUG'])):
     if not check_password():
         st.stop()
-
 
 st.write(f"# offline data upload")
 
@@ -44,7 +28,14 @@ if uploaded_file is not None:
     df = df[1:]
     df['batch_name'] = df['Sample name'].str.rsplit('_').str[0:4]
     df['batch_name'] = ['_'.join(map(str, l)) for l in df['batch_name']]
-    st.write(df[['timestamp', 'Sample name', 'batch_name', 'Macrocidins_Tot', 'Pre-A', 'Factor A', 'Factor Z', 'Post-Z', ]])
+    df['batch_name'] = df['batch_name'].str.rsplit('_').str[1:4]
+    df['batch_name'] = ['_'.join(map(str, l)) for l in df['batch_name']]
+    df = df.rename(columns={'Time Stamp': 'timestamp'})
+    df = df[['timestamp', 'Sample name', 'batch_name',
+        'Macrocidins_Tot  (mg/mL)', 'Pre-A (mg/mL)', 'Factor A  (mg/mL)', 'Factor Z  (mg/mL)', 'Post-Z  (mg/mL)',
+        'Fructose (g/L)', 'Sucrose (g/L)', 'Glucose (g/L)', 'Glycerol (g/L)', 'CFU/mL harvest', 'CFU/Reactor volume (CFU/L)', 'Inoculated CFU', 'Inoculation viability (CFU/spore)', 'Treatment'
+    ]]
+    st.write(df)
 
     st.markdown(f"""
         <p>min() timestamp:<br/> {df['timestamp'].min()} </p>
@@ -53,5 +44,7 @@ if uploaded_file is not None:
     """, unsafe_allow_html=True)
 
     if st.button("batch this offline data with available stream data"):
+        engine = create_engine(f"postgresql://postgres:DsRdPPJtetGDiMFypvHpUJUKAwEXfoSG@junction.proxy.rlwy.net:19704/PHOMA")
+        df.to_sql(f"OFFLINE", con=engine, index=False, if_exists='append')
         st.write("thank you data is uploaded: ")
         st.badge("successfully", icon=":material/check:", color="green")

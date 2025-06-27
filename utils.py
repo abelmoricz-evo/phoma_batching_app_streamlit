@@ -1,20 +1,9 @@
-# Copyright 2018-2022 Streamlit Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#    http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-import streamlit as st
+import os
+import hmac
 import inspect
 import textwrap
+import streamlit as st
+
 
 def show_code(demo):
     """Showing the code of the demo."""
@@ -24,3 +13,19 @@ def show_code(demo):
         st.markdown("## Code")
         sourcelines, _ = inspect.getsourcelines(demo)
         st.code(textwrap.dedent("".join(sourcelines[1:])))
+
+
+def check_password():
+    def password_entered():
+        if hmac.compare_digest(st.session_state["password"], os.environ.get("STREAMLIT_PASSWORD", "")):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
+
+    if st.session_state.get("password_correct", False):
+        return True
+    st.text_input("Password", type="password", on_change=password_entered, key="password")
+    if "password_correct" in st.session_state:
+        st.error("😕 Password incorrect")
+    return False
